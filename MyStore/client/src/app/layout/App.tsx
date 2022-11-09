@@ -12,29 +12,33 @@ import ServerError from "../errors/ServerError";
 import AboutPage from "../../features/about/AboutPage";
 import NotFound from "../errors/NotFound";
 import BasketPage from "../../features/basket/BasketPage";
-import { useStoreContext } from "../context/StoreContext";
 import { getCookie } from "../util/util";
 import agent from "../api/agent";
 import Loading from "./Loading";
 import CheckoutPage from "../../features/checkout/CheckoutPage";
+import { useAppDispatch } from "../store/ConfigureStore";
+import { setBasket } from "../../features/basket/basketSlice";
 
 
 function App() {
 
-  const { setBasket } = useStoreContext();
+
+  const dispatch = useAppDispatch(); //using redux now
+  // const { setBasket } = useStoreContext(); //using react context
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const buyerId = getCookie('buyerId');
     if (buyerId) {
       agent.Basket.get()
-        .then(basket => setBasket(basket))
+        .then(basket => dispatch(setBasket(basket)))
         .catch(error => console.log(error))
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
-  }, [setBasket]);
+  }, [dispatch]);
 
 
   const [darkMode, setDarkMode] = useState(false);

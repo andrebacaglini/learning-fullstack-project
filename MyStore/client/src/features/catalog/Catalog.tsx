@@ -1,24 +1,24 @@
-import { useState, useEffect } from "react";
-import agent from "../../app/api/agent";
+import { useEffect } from "react";
 import Loading from "../../app/layout/Loading";
-import { Product } from "../../app/models/product"
+import { useAppDispatch, useAppSelector } from "../../app/store/ConfigureStore";
+import { fetchProductsAsync, productSelectors } from "./catalogSlice";
 import ProductList from "./ProductList";
 
 // distucturing props into what we need for this component just to avoid using 'props.something'
 export default function Catalog() {
 
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-
-    // second parameter is an empty array to ensure this callback is executed only once. Otherwise, useEffect will be triggered every time component render.
+    const products = useAppSelector(productSelectors.selectAll);
+    const { productsLoadedState, status } = useAppSelector(state => state.catalog)
+    const dispatch = useAppDispatch();
+    
     useEffect(() => {
-        agent.Catalog.list()
-            .then(products => setProducts(products))
-            .catch(error => console.log(error))
-            .finally(() => setLoading(false))
-    }, []);
+        if (!productsLoadedState) {
+            dispatch(fetchProductsAsync());
+        }
 
-    if (loading) return (<Loading message="Loading products...." />)
+    }, [productsLoadedState, dispatch]);
+
+    if (status.includes('pending')) return (<Loading message="Loading products...." />)
 
     return (
         // <> equivalent of using <Fragment>
